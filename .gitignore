@@ -1,0 +1,7 @@
+#Ignore Data Files.
+/DataToAnimate
+*.dat
+*.eps
+
+#Ignore Pyenv config file.
+.python-version
