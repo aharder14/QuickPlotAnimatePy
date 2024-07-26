@@ -3,6 +3,7 @@ import os
 
 import pandas as pd
 import matplotlib.pyplot as plt
+import matplotlib.animation as animation
 
 parser = argparse.ArgumentParser(
     description='Utility for making animated line graphs.')
@@ -31,15 +32,40 @@ def data_to_dataframe(path: str, names: list[str]) -> pd.DataFrame:
             .read_csv(
                 file_path, names=names, index_col=False,
                 header=None, sep=r'\s+')
-            .assign(alpha=alpha)
             .convert_dtypes()
             )
-        dfs.append(df)
+        dfs.append((alpha, df))
     
-    df = pd.concat(dfs, ignore_index=True)
-    return df
+    return dfs
+
+
+def update_line(
+        num: int,
+        x: pd.Series,
+        y: pd.Series,
+        line: plt.Line2D) -> plt.Line2D:
+    line.set_data(x[:num], y[:num])
+    return line,
 
 
 if args := parser.parse_args():
-    df = data_to_dataframe(**args.__dict__)
-    print(df)
+    data_dir = args.__dict__['path']
+    data_names = args.__dict__['names']
+    dfs = data_to_dataframe(data_dir, data_names)
+else:
+    quit()
+
+
+fig, ax = plt.subplots()
+animations = []
+
+for alpha, df in dfs:
+    x_name, y_name, = data_names
+    x = df[x_name]
+    y = df[y_name]
+    line, = ax.plot(x, y)
+    animations.append(
+        animation.FuncAnimation(
+            fig, update_line, len(x), fargs=(x, y, line)))
+
+plt.show()
