@@ -57,6 +57,7 @@ else:
 
 
 fig, ax = plt.subplots()
+frames = max(len(df) for _, df in dfs)
 animations = []
 
 for alpha, df in dfs:
@@ -66,6 +67,6 @@ for alpha, df in dfs:
     line, = ax.plot(x, y)
     animations.append(
         animation.FuncAnimation(
-            fig, update_line, len(x), fargs=(x, y, line)))
+            fig, update_line, frames, fargs=(x, y, line)))
 
 plt.show()
