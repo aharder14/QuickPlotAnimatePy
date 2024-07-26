@@ -11,8 +11,13 @@ parser.add_argument(
     'path',
     help='Relative or absolute path to folder containing data.')
 parser.add_argument(
+    '-t', '--title',
+    help='Title of the animated figure.')
+parser.add_argument(
     '--names', '-n', nargs='+',
     help='Names of columns present in data files.')
+
+animations = []
 
 
 def data_to_dataframe(path: str, names: list[str]) -> pd.DataFrame:
@@ -48,9 +53,22 @@ def update_line(
     return line,
 
 
+def create_animated_plots(
+        fig: plt.Figure,
+        frames: int,
+        x: pd.Series,
+        y: pd.Series,
+        **line_args):
+    line, = ax.plot(x, y)
+    ani = animation.FuncAnimation(
+        fig,update_line, frames, fargs=(x, y, line))
+    animations.append(ani)
+
+
 if args := parser.parse_args():
     data_dir = args.__dict__['path']
     data_names = args.__dict__['names']
+    plot_title = args.__dict__['title']
     dfs = data_to_dataframe(data_dir, data_names)
 else:
     quit()
@@ -58,15 +76,14 @@ else:
 
 fig, ax = plt.subplots()
 frames = max(len(df) for _, df in dfs)
-animations = []
+x_name, y_name, = data_names
 
-for alpha, df in dfs:
-    x_name, y_name, = data_names
-    x = df[x_name]
-    y = df[y_name]
-    line, = ax.plot(x, y)
-    animations.append(
-        animation.FuncAnimation(
-            fig, update_line, frames, fargs=(x, y, line)))
+for _, df in dfs:
+    create_animated_plots(fig, frames, df[x_name], df[y_name])
 
+if plot_title:
+    ax.set_title(args.__dict__['title'])
+
+ax.set_xlabel(x_name)
+ax.set_ylabel(y_name)
 plt.show()
