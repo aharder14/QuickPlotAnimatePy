@@ -177,6 +177,9 @@ def main(
     if title:
         ax.set_title(title)
 
+    if labels:
+        fig.legend()
+
     ax.set_xlabel(x_name)
     ax.set_ylabel(y_name)
     plt.show()
