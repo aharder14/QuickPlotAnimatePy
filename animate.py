@@ -25,6 +25,12 @@ fig_parser.add_argument(
 fig_parser.add_argument(
     '--size', '-s', default=None, type=float, nargs='*',
     help='Size of the figure to plot.')
+fig_parser.add_argument(
+    '--ylog', '-y', action='store_true',
+    help='Set y axis scale to be logarithmic.')
+fig_parser.add_argument(
+    '--xlog', '-x', action='store_true',
+    help='Set x axis scale to be logarithmic.')
 
 file_parser = parser.add_argument_group(
     title='File and Plot Arguments',
@@ -132,6 +138,8 @@ def main(
         verbose: bool,
         display: bool,
         save: str | None,
+        xlog: bool,
+        ylog: bool,
         names: list[str],
         header: int,
         separator: str,
@@ -208,14 +216,20 @@ def main(
                     ''')
             print(message)
 
+    ax.set_xlabel(x_name)
+    ax.set_ylabel(y_name)
+
     if title:
         ax.set_title(title)
 
     if labels:
         fig.legend()
 
-    ax.set_xlabel(x_name)
-    ax.set_ylabel(y_name)
+    if ylog:
+        ax.set_yscale('log')
+
+    if xlog:
+        ax.set_xscale('log')
 
     if display:
         plt.show()
