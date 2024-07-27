@@ -5,3 +5,8 @@
 
 #Ignore Pyenv config file.
 .python-version
+
+#Ignore save files.
+*.gif
+*.png
+*.jpeg

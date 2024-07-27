@@ -11,7 +11,7 @@ parser = argparse.ArgumentParser(
     description='Script for making animated line graphs from simple 2D data.')
 parser.add_argument(
     'files', nargs='+',
-    help='Names of files in directory to parse. File should share a format.')
+    help='Names of files in directory to parse. Files should share a format.')
 parser.add_argument(
     '--directory', '-d', default=None,
     help='Relative or absolute path to directory containing data.')
@@ -68,13 +68,10 @@ output_parser.add_argument(
     help='Path to desired save file.')
 output_parser.add_argument(
     '--verbose', '-v', action='store_true',
-    help='Print to standard output information on each line.')
+    help='Print information on each plot to standard output.')
 output_parser.add_argument(
     '--display', '-D', action='store_true',
     help='Display plot in interactive window.')
-
-
-animations = []
 
 
 def data_to_dataframes(
@@ -110,26 +107,11 @@ def data_to_dataframes(
     return dfs, used_files
 
 
-def update_line(
-        num: int,
-        x: pd.Series,
-        y: pd.Series,
-        line: plt.Line2D) -> plt.Line2D:
-    line.set_data(x[:num], y[:num])
-    return line,
-
-
-def create_animated_plots(
-        fig: plt.Figure,
-        ax: plt.Axes,
-        frames: int,
-        x: pd.Series,
-        y: pd.Series,
-        **line_args):
-    line, = ax.plot(x, y, **line_args)
-    ani = animation.FuncAnimation(
-        fig,update_line, frames, fargs=(x, y, line))
-    animations.append(ani)
+def update_line(num: int, *args) -> plt.Line2D:
+    for i in range(0, len(args), 3):
+        line_set = args[i:i+3] 
+        x, y, line = line_set
+        line.set_data(x[:num], y[:num])
 
 
 def main(
@@ -193,15 +175,18 @@ def main(
     if inverse:
         x_name, y_name = y_name, x_name
 
+    line_data = []
+
     for i, df in enumerate(dfs):
         x = df[x_name]
         y = df[y_name]
         line_args = {
             k: safe_list_unpack(l, i) for k, l in line_args_keys
             }
-        create_animated_plots(
-            fig, ax, frames, x, y,
-            **null_unpack(**line_args))
+        line, = ax.plot(x, y, **null_unpack(**line_args))
+        line_data.append(x)
+        line_data.append(y)
+        line_data.append(line)
         
         if verbose:
             message = dedent(
@@ -216,6 +201,7 @@ def main(
                     ''')
             print(message)
 
+    ani = animation.FuncAnimation(fig, update_line, frames, fargs=line_data)
     ax.set_xlabel(x_name)
     ax.set_ylabel(y_name)
 
@@ -230,6 +216,9 @@ def main(
 
     if xlog:
         ax.set_xscale('log')
+
+    if save:
+        ani.save(save)
 
     if display:
         plt.show()
