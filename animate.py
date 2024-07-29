@@ -78,6 +78,9 @@ output_parser.add_argument(
 output_parser.add_argument(
     '--dpi', '-p', default=None,
     help='Pixel density of the produced image file, provided as DPI.')
+output_parser.add_argument(
+    '--fixed', '-f', default=None,
+    help='Path to static image of final generated plot.')
 
 
 def data_to_dataframes(
@@ -138,7 +141,8 @@ def main(
         colors: list[str],
         markers: list[str],
         dpi: float | None,
-        order: bool):
+        order: bool,
+        fixed: str | None):
     def null_unpack(**kwargs) -> tuple:
         return {k: v for k, v in kwargs.items() if not v is None}
     
@@ -230,6 +234,9 @@ def main(
 
     if save:
         ani.save(save, **null_unpack(dpi=int(dpi)))
+
+    if fixed:
+        plt.savefig(fixed, **null_unpack(dpi=int(dpi)))
 
     if display:
         plt.show()
