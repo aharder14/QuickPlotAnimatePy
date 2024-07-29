@@ -31,6 +31,9 @@ fig_parser.add_argument(
 fig_parser.add_argument(
     '--xlog', '-x', action='store_true',
     help='Set x axis scale to be logarithmic.')
+fig_parser.add_argument(
+    '--order', '-o', action='store_true',
+    help='Order animations so that points appear left to right.')
 
 file_parser = parser.add_argument_group(
     title='File and Plot Arguments',
@@ -72,6 +75,9 @@ output_parser.add_argument(
 output_parser.add_argument(
     '--display', '-D', action='store_true',
     help='Display plot in interactive window.')
+output_parser.add_argument(
+    '--dpi', '-p', default=None,
+    help='Pixel density of the produced image file, provided as DPI.')
 
 
 def data_to_dataframes(
@@ -130,7 +136,9 @@ def main(
         inverse: bool,
         labels: list[str],
         colors: list[str],
-        markers: list[str]):
+        markers: list[str],
+        dpi: float | None,
+        order: bool):
     def null_unpack(**kwargs) -> tuple:
         return {k: v for k, v in kwargs.items() if not v is None}
     
@@ -178,6 +186,9 @@ def main(
     line_data = []
 
     for i, df in enumerate(dfs):
+        if order:
+            df = df.sort_values(x_name)
+
         x = df[x_name]
         y = df[y_name]
         line_args = {
@@ -218,7 +229,7 @@ def main(
         ax.set_xscale('log')
 
     if save:
-        ani.save(save)
+        ani.save(save, **null_unpack(dpi=int(dpi)))
 
     if display:
         plt.show()
